@@ -107,7 +107,6 @@
 }
 
 .warButton:hover {
-  transform: translateY(-4px);
   border-color: rgba(220, 215, 202, 0.5);
   letter-spacing: 0.5em;
   box-shadow:

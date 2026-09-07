@@ -8,9 +8,6 @@
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.5);
   pointer-events: none;
-  transition:
-    opacity 0.4s,
-    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .reticle::before,

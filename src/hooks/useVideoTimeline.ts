@@ -15,9 +15,9 @@ export interface VideoTimelineControls {
 
 export function useVideoTimeline(
   videoRef: React.RefObject<HTMLVideoElement | null>,
-  options: { targetTime?: number } = {}
+  options: { targetTime: number }
 ): VideoTimelineControls {
-  const { targetTime = 3.25 } = options;
+  const { targetTime } = options;
 
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);

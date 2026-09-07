@@ -161,15 +161,17 @@ export default function App() {
           ref={videoWrapRef}
           className={`${styles.videoWrap} ${effectiveState === "menu" ? styles.videoMenu : ""}`}
         >
-          <video
-            ref={videoRef}
-            className={styles.video}
-            src="/assets/general.mp4"
-            muted
-            playsInline
-            preload="auto"
-            onLoadedMetadata={handleVideoMetadata}
-          />
+          <div className={styles.videoIdleWrap}>
+            <video
+              ref={videoRef}
+              className={styles.video}
+              src="/assets/general.mp4"
+              muted
+              playsInline
+              preload="auto"
+              onLoadedMetadata={handleVideoMetadata}
+            />
+          </div>
           <div className={styles.atmosphericLight} />
           {effectiveState === "menu" && <div className={styles.menuGlow} />}
         </div>
