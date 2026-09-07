@@ -1,16 +1,15 @@
-import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import gsap from "gsap";
 
 export interface VideoTimelineControls {
   isReady: boolean;
   duration: number;
-  currentTime: number;
-  scrubTo: (targetProgress: number, duration?: number) => void;
-  playTo: (targetTime: number) => Promise<void>;
-  pauseAtCurrent: () => void;
-  setTime: (time: number) => void;
-  getProgress: () => number;
+  scrubToTime: (target: number, duration: number, ease?: string) => gsap.core.Tween;
+  reverseToStart: (duration: number) => gsap.core.Tween;
+  completeTo: (target: number, duration: number) => Promise<void>;
+  freezeAt: (time: number) => void;
   getTargetTime: () => number;
+  readTime: () => number;
 }
 
 export function useVideoTimeline(
@@ -21,9 +20,8 @@ export function useVideoTimeline(
 
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
 
-  const scrubTweenRef = useRef<gsap.core.Tween | null>(null);
+  const activeTweenRef = useRef<gsap.core.Tween | null>(null);
   const proxyRef = useRef({ time: 0 });
   const targetTimeRef = useRef(targetTime);
 
@@ -43,130 +41,105 @@ export function useVideoTimeline(
       setIsReady(true);
     };
 
-    const onTimeUpdate = () => {
-      if (!scrubTweenRef.current || !scrubTweenRef.current.isActive()) {
-        setCurrentTime(video.currentTime);
-      }
-    };
-
     video.addEventListener("loadedmetadata", onLoadedMetadata);
-    video.addEventListener("timeupdate", onTimeUpdate);
+    if (video.readyState >= 1) onLoadedMetadata();
 
-    if (video.readyState >= 1) {
-      onLoadedMetadata();
-    }
-
-    return () => {
-      video.removeEventListener("loadedmetadata", onLoadedMetadata);
-      video.removeEventListener("timeupdate", onTimeUpdate);
-    };
+    return () => video.removeEventListener("loadedmetadata", onLoadedMetadata);
   }, [videoRef]);
 
-  const scrubTo = useCallback(
-    (targetProgress: number, scrubDuration = 0.9) => {
+  const killActive = useCallback(() => {
+    if (activeTweenRef.current) {
+      activeTweenRef.current.kill();
+      activeTweenRef.current = null;
+    }
+  }, []);
+
+  const scrubToTime = useCallback(
+    (target: number, dur: number, ease = "power1.inOut") => {
       const video = videoRef.current;
-      if (!video || !isReady) return;
+      if (!video) return gsap.getById?.("noop") as gsap.core.Tween ?? gsap.set({}, {});
 
-      if (scrubTweenRef.current) {
-        scrubTweenRef.current.kill();
-      }
-
-      const target = targetTimeRef.current * Math.max(0, Math.min(1, targetProgress));
+      killActive();
       proxyRef.current.time = video.currentTime;
 
-      scrubTweenRef.current = gsap.to(proxyRef.current, {
+      activeTweenRef.current = gsap.to(proxyRef.current, {
         time: target,
-        duration: scrubDuration,
-        ease: "power2.out",
+        duration: dur,
+        ease,
+        overwrite: true,
         onUpdate: () => {
           video.currentTime = proxyRef.current.time;
-          setCurrentTime(proxyRef.current.time);
         },
       });
+      return activeTweenRef.current;
     },
-    [videoRef, isReady]
+    [videoRef, killActive]
   );
 
-  const playTo = useCallback(
-    (destTime: number): Promise<void> => {
+  const reverseToStart = useCallback(
+    (dur: number) => {
+      return scrubToTime(0, dur, "power2.inOut");
+    },
+    [scrubToTime]
+  );
+
+  const completeTo = useCallback(
+    (target: number, dur: number): Promise<void> => {
       const video = videoRef.current;
-      if (!video || !isReady) return Promise.resolve();
+      if (!video) return Promise.resolve();
 
       return new Promise((resolve) => {
-        if (scrubTweenRef.current) {
-          scrubTweenRef.current.kill();
-        }
-
+        killActive();
         proxyRef.current.time = video.currentTime;
 
-        scrubTweenRef.current = gsap.to(proxyRef.current, {
-          time: Math.min(destTime, duration),
-          duration: Math.max(0.1, (destTime - video.currentTime) / 2),
+        activeTweenRef.current = gsap.to(proxyRef.current, {
+          time: target,
+          duration: dur,
           ease: "power2.inOut",
+          overwrite: true,
           onUpdate: () => {
             video.currentTime = proxyRef.current.time;
-            setCurrentTime(proxyRef.current.time);
           },
           onComplete: () => {
-            video.currentTime = Math.min(destTime, duration);
+            video.currentTime = target;
             video.pause();
-            setCurrentTime(video.currentTime);
             resolve();
           },
         });
       });
     },
-    [videoRef, isReady, duration]
+    [videoRef, killActive]
   );
 
-  const pauseAtCurrent = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (scrubTweenRef.current) {
-      scrubTweenRef.current.kill();
-    }
-    video.pause();
-    setCurrentTime(video.currentTime);
-  }, [videoRef]);
-
-  const setTime = useCallback(
+  const freezeAt = useCallback(
     (time: number) => {
       const video = videoRef.current;
       if (!video) return;
-      video.currentTime = Math.max(0, Math.min(time, duration || 4));
-      setCurrentTime(video.currentTime);
+      killActive();
+      video.currentTime = time;
+      video.pause();
     },
-    [videoRef, duration]
+    [videoRef, killActive]
   );
-
-  const getProgress = useCallback(() => {
-    const video = videoRef.current;
-    if (!video || targetTimeRef.current === 0) return 0;
-    return video.currentTime / targetTimeRef.current;
-  }, [videoRef]);
 
   const getTargetTime = useCallback(() => targetTimeRef.current, []);
 
-  useEffect(() => {
-    return () => {
-      if (scrubTweenRef.current) {
-        scrubTweenRef.current.kill();
-      }
-    };
-  }, []);
+  const readTime = useCallback(() => {
+    return videoRef.current?.currentTime ?? 0;
+  }, [videoRef]);
 
-  return useMemo(
-    () => ({
-      isReady,
-      duration,
-      currentTime,
-      scrubTo,
-      playTo,
-      pauseAtCurrent,
-      setTime,
-      getProgress,
-      getTargetTime,
-    }),
-    [isReady, duration, currentTime, scrubTo, playTo, pauseAtCurrent, setTime, getProgress, getTargetTime]
-  );
+  useEffect(() => {
+    return () => { killActive(); };
+  }, [killActive]);
+
+  return {
+    isReady,
+    duration,
+    scrubToTime,
+    reverseToStart,
+    completeTo,
+    freezeAt,
+    getTargetTime,
+    readTime,
+  };
 }

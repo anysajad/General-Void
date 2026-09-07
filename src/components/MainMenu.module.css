@@ -37,7 +37,7 @@
 }
 
 .eyebrow {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 0.48em;
   color: var(--gold, #b69a63);
   margin-bottom: 10px;
@@ -99,7 +99,7 @@
 
 .itemNumber {
   color: #444;
-  font: 10px Inter, sans-serif;
+  font: 12px Inter, sans-serif;
   letter-spacing: 0.18em;
   min-width: 22px;
   transition: color 0.3s;
@@ -118,7 +118,7 @@
   position: absolute;
   right: 16px;
   color: #555;
-  font: 10px Inter, sans-serif;
+  font: 12px Inter, sans-serif;
   letter-spacing: 0.18em;
   opacity: 0;
 }
@@ -129,7 +129,7 @@
   top: 6vh;
   text-align: right;
   color: #555;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.35em;
   text-transform: uppercase;
   line-height: 2;

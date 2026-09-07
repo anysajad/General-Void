@@ -9,7 +9,6 @@ interface IntroSceneProps {
   videoTimeline: VideoTimelineControls;
   onActivate: () => void;
   videoReady: boolean;
-  mouseRef: React.RefObject<{ x: number; y: number }>;
 }
 
 export default function IntroScene({
@@ -27,8 +26,10 @@ export default function IntroScene({
 
   const isHoveringRef = useRef(false);
   const isActiveRef = useRef(false);
-  const scrubTweenRef = useRef<gsap.core.Tween | null>(null);
+  const aimLockedRef = useRef(false);
+  const aimLockTlRef = useRef<gsap.core.Timeline | null>(null);
 
+  // Entrance animation
   useEffect(() => {
     if (!videoReady) return;
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
@@ -54,6 +55,54 @@ export default function IntroScene({
     return () => { tl.kill(); };
   }, [videoReady]);
 
+  // FIX #6: Aim lock moment
+  const fireAimLock = useCallback(() => {
+    if (aimLockedRef.current) return;
+    aimLockedRef.current = true;
+
+    const tl = gsap.timeline();
+    aimLockTlRef.current = tl;
+
+    // Reticle contracts: 1 → 0.85 → 1
+    tl.to(reticleRef.current, {
+      scale: 0.85, duration: 0.12, ease: "power2.in",
+    }, 0);
+    tl.to(reticleRef.current, {
+      scale: 1, duration: 0.13, ease: "back.out(3)",
+    }, 0.12);
+
+    // Button pulse — box-shadow glow
+    tl.to(buttonRef.current, {
+      boxShadow: "0 0 30px rgba(165,26,26,0.4), 0 20px 70px rgba(0,0,0,0.6)",
+      duration: 0.2,
+      ease: "power2.out",
+    }, 0);
+    tl.to(buttonRef.current, {
+      boxShadow: "0 20px 70px rgba(0,0,0,0.6)",
+      duration: 0.3,
+      ease: "power2.in",
+    }, 0.2);
+
+    // Scene push-in
+    tl.to(sceneRef.current, {
+      scale: 1.01, duration: 0.6, ease: "power2.out",
+      transformOrigin: "50% 60%",
+    }, 0);
+  }, []);
+
+  const reverseAimLock = useCallback(() => {
+    if (!aimLockedRef.current) return;
+    aimLockedRef.current = false;
+    if (aimLockTlRef.current) {
+      aimLockTlRef.current.kill();
+      aimLockTlRef.current = null;
+    }
+    gsap.to(sceneRef.current, {
+      scale: 1, duration: 0.4, ease: "power2.inOut",
+    });
+  }, []);
+
+  // FIX #5: Forward scrub — 1.6s, custom ease, onComplete fires aim lock
   const handleMouseEnter = useCallback(() => {
     if (isActiveRef.current || !videoTimeline.isReady) return;
     isHoveringRef.current = true;
@@ -70,31 +119,32 @@ export default function IntroScene({
       opacity: 1, scale: 1, duration: 0.6, ease: "power2.out",
     });
 
-    if (scrubTweenRef.current) scrubTweenRef.current.kill();
-    const video = document.querySelector("video");
-    if (video) {
-      const target = videoTimeline.getTargetTime();
-      const proxy = { time: video.currentTime };
-      scrubTweenRef.current = gsap.to(proxy, {
-        time: target,
-        duration: 0.95,
-        ease: "power2.out",
-        onUpdate: () => {
-          video.currentTime = proxy.time;
-        },
-      });
-    }
-  }, [videoTimeline]);
+    // Scrub: slow first 20% (notices), fast through standing, settles into aim
+    videoTimeline.scrubToTime(
+      videoTimeline.getTargetTime(),
+      1.6,
+      "power1.inOut"
+    ).eventCallback("onComplete", fireAimLock);
+  }, [videoTimeline, fireAimLock]);
 
   const handleMouseMove = useCallback((e: React.PointerEvent) => {
     if (!isHoveringRef.current || !reticleRef.current) return;
-    reticleRef.current.style.left = `${e.clientX}px`;
-    reticleRef.current.style.top = `${e.clientY}px`;
+    // Snap reticle to button center on aim lock, otherwise follow cursor
+    if (aimLockedRef.current && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      reticleRef.current.style.left = `${rect.left + rect.width / 2}px`;
+      reticleRef.current.style.top = `${rect.top + rect.height / 2}px`;
+    } else {
+      reticleRef.current.style.left = `${e.clientX}px`;
+      reticleRef.current.style.top = `${e.clientY}px`;
+    }
   }, []);
 
+  // FIX #5: Reverse — 1.2s
   const handleMouseLeave = useCallback(() => {
     if (isActiveRef.current) return;
     isHoveringRef.current = false;
+    reverseAimLock();
 
     gsap.to(buttonRef.current, {
       y: 0, duration: 0.45, ease: "power2.inOut",
@@ -108,31 +158,20 @@ export default function IntroScene({
       opacity: 0, scale: 0.8, duration: 0.5, ease: "power2.in",
     });
 
-    if (scrubTweenRef.current) scrubTweenRef.current.kill();
-    const video = document.querySelector("video");
-    if (video) {
-      const proxy = { time: video.currentTime };
-      scrubTweenRef.current = gsap.to(proxy, {
-        time: 0,
-        duration: 1.1,
-        ease: "power2.inOut",
-        onUpdate: () => {
-          video.currentTime = proxy.time;
-        },
-      });
-    }
-  }, []);
+    videoTimeline.reverseToStart(1.2);
+  }, [videoTimeline, reverseAimLock]);
 
-  const handleClick = useCallback(async () => {
+  // FIX #3: Click — call onActivate immediately (t=0), no scrub kill
+  const handleClick = useCallback(() => {
     if (isActiveRef.current || !videoTimeline.isReady) return;
     isActiveRef.current = true;
+    reverseAimLock();
 
-    if (scrubTweenRef.current) scrubTweenRef.current.kill();
-
+    // UI fade timeline — runs in parallel with App's completion tween
     const tl = gsap.timeline();
 
-    tl.to(buttonRef.current, { scale: 0.96, duration: 0.08, ease: "power2.in" });
-    tl.to(buttonRef.current, { scale: 1, duration: 0.2, ease: "back.out(3)" });
+    tl.to(buttonRef.current, { scale: 0.96, duration: 0.08, ease: "power2.in" }, 0);
+    tl.to(buttonRef.current, { scale: 1, duration: 0.2, ease: "back.out(3)" }, 0.08);
 
     tl.to(reticleRef.current, {
       scale: 1.3, opacity: 0.8, duration: 0.15, ease: "power2.out",
@@ -152,8 +191,9 @@ export default function IntroScene({
     tl.to(hintRef.current, { opacity: 0, duration: 0.3 }, 0.2);
     tl.to(topbarRef.current, { opacity: 0, duration: 0.4 }, 0.3);
 
-    tl.call(() => onActivate(), [], 0.6);
-  }, [videoTimeline, onActivate]);
+    // FIX #3: Call onActivate at t=0 — App's timeline takes over video via overwrite
+    onActivate();
+  }, [videoTimeline, onActivate, reverseAimLock]);
 
   return (
     <div

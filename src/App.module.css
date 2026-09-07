@@ -151,6 +151,15 @@
   pointer-events: none;
 }
 
+.curtainWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
 @media (max-width: 800px) {
   .videoWrap {
     height: 90vh;
