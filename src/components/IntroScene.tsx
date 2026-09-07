@@ -1,18 +1,28 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import gsap from "gsap";
 import WarButton from "./WarButton";
 import Reticle from "./Reticle";
-import type { VideoTimelineControls } from "../hooks/useVideoTimeline";
+import type { CharacterPlayer, CharacterState } from "../hooks/useCharacterPlayer";
 import styles from "./IntroScene.module.css";
 
 interface IntroSceneProps {
-  videoTimeline: VideoTimelineControls;
+  player: CharacterPlayer;
   onActivate: () => void;
   videoReady: boolean;
 }
 
+const HEADING = "WAR COMMAND";
+
+function tweenTo(
+  target: gsap.TweenTarget,
+  vars: gsap.TweenVars,
+  position?: number | string
+): gsap.core.Tween {
+  return (gsap.to as Function)(target, vars, position);
+}
+
 export default function IntroScene({
-  videoTimeline,
+  player,
   onActivate,
   videoReady,
 }: IntroSceneProps) {
@@ -23,39 +33,57 @@ export default function IntroScene({
   const topbarRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   const isHoveringRef = useRef(false);
   const isActiveRef = useRef(false);
   const aimLockedRef = useRef(false);
   const aimLockTlRef = useRef<gsap.core.Timeline | null>(null);
+  const [armed, setArmed] = useState(false);
 
-  // Entrance animation
   useEffect(() => {
-    if (!videoReady) return;
+    if (!videoReady || !headingRef.current) return;
+
+    const chars = headingRef.current.querySelectorAll(`.${styles.splitChar}`);
+    if (chars.length === 0) return;
+
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-    tl.fromTo(titleRef.current,
-      { opacity: 0, y: 20, filter: "blur(8px)" },
-      { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.2, delay: 0.3 }
+    tl.fromTo(
+      chars,
+      { y: 30, opacity: 0, filter: "blur(6px)" },
+      { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.8, stagger: 0.04 },
+      0
     );
-    tl.fromTo(topbarRef.current,
+
+    tl.fromTo(
+      titleRef.current,
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.8, delay: 0.2 },
+      0
+    );
+
+    tl.fromTo(
+      topbarRef.current,
       { opacity: 0, y: -10 },
       { opacity: 1, y: 0, duration: 0.8 },
       0.5
     );
-    tl.fromTo(buttonRef.current,
+    tl.fromTo(
+      buttonRef.current,
       { opacity: 0, y: 15 },
       { opacity: 1, y: 0, duration: 0.8 },
       0.8
     );
-    tl.fromTo(hintRef.current,
+    tl.fromTo(
+      hintRef.current,
       { opacity: 0 },
       { opacity: 1, duration: 0.6 },
       1.2
     );
+
     return () => { tl.kill(); };
   }, [videoReady]);
 
-  // FIX #6: Aim lock moment
   const fireAimLock = useCallback(() => {
     if (aimLockedRef.current) return;
     aimLockedRef.current = true;
@@ -63,7 +91,6 @@ export default function IntroScene({
     const tl = gsap.timeline();
     aimLockTlRef.current = tl;
 
-    // Reticle contracts: 1 → 0.85 → 1
     tl.to(reticleRef.current, {
       scale: 0.85, duration: 0.12, ease: "power2.in",
     }, 0);
@@ -71,9 +98,9 @@ export default function IntroScene({
       scale: 1, duration: 0.13, ease: "back.out(3)",
     }, 0.12);
 
-    // Button pulse — box-shadow glow
     tl.to(buttonRef.current, {
-      boxShadow: "0 0 30px rgba(165,26,26,0.4), 0 20px 70px rgba(0,0,0,0.6)",
+      boxShadow:
+        "0 0 30px rgba(165,26,26,0.4), 0 20px 70px rgba(0,0,0,0.6)",
       duration: 0.2,
       ease: "power2.out",
     }, 0);
@@ -83,7 +110,6 @@ export default function IntroScene({
       ease: "power2.in",
     }, 0.2);
 
-    // Scene push-in
     tl.to(sceneRef.current, {
       scale: 1.01, duration: 0.6, ease: "power2.out",
       transformOrigin: "50% 60%",
@@ -102,34 +128,34 @@ export default function IntroScene({
     });
   }, []);
 
-  // FIX #5: Forward scrub — 1.6s, custom ease, onComplete fires aim lock
+  useEffect(() => {
+    const unsub = player.onStateChange((s: CharacterState) => {
+      if (s === "aiming" && isHoveringRef.current && !isActiveRef.current) {
+        fireAimLock();
+      }
+    });
+    return unsub;
+  }, [player, fireAimLock]);
+
   const handleMouseEnter = useCallback(() => {
-    if (isActiveRef.current || !videoTimeline.isReady) return;
+    if (isActiveRef.current) return;
     isHoveringRef.current = true;
 
     gsap.to(buttonRef.current, {
       y: -4, duration: 0.35, ease: "power2.out",
     });
-
     gsap.to(reticleRef.current, {
       opacity: 1, scale: 1, duration: 0.4, ease: "power2.out",
     });
-
     gsap.to(glowRef.current, {
       opacity: 1, scale: 1, duration: 0.6, ease: "power2.out",
     });
 
-    // Scrub: slow first 20% (notices), fast through standing, settles into aim
-    videoTimeline.scrubToTime(
-      videoTimeline.getTargetTime(),
-      1.6,
-      "power1.inOut"
-    ).eventCallback("onComplete", fireAimLock);
-  }, [videoTimeline, fireAimLock]);
+    player.rise();
+  }, [player]);
 
   const handleMouseMove = useCallback((e: React.PointerEvent) => {
     if (!isHoveringRef.current || !reticleRef.current) return;
-    // Snap reticle to button center on aim lock, otherwise follow cursor
     if (aimLockedRef.current && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       reticleRef.current.style.left = `${rect.left + rect.width / 2}px`;
@@ -140,7 +166,6 @@ export default function IntroScene({
     }
   }, []);
 
-  // FIX #5: Reverse — 1.2s
   const handleMouseLeave = useCallback(() => {
     if (isActiveRef.current) return;
     isHoveringRef.current = false;
@@ -149,51 +174,48 @@ export default function IntroScene({
     gsap.to(buttonRef.current, {
       y: 0, duration: 0.45, ease: "power2.inOut",
     });
-
     gsap.to(reticleRef.current, {
       opacity: 0, scale: 0.5, duration: 0.4, ease: "power2.in",
     });
-
     gsap.to(glowRef.current, {
       opacity: 0, scale: 0.8, duration: 0.5, ease: "power2.in",
     });
 
-    videoTimeline.reverseToStart(1.2);
-  }, [videoTimeline, reverseAimLock]);
+    player.sit();
+  }, [player, reverseAimLock]);
 
-  // FIX #3: Click — call onActivate immediately (t=0), no scrub kill
   const handleClick = useCallback(() => {
-    if (isActiveRef.current || !videoTimeline.isReady) return;
+    if (isActiveRef.current) return;
     isActiveRef.current = true;
+    setArmed(true);
     reverseAimLock();
 
-    // UI fade timeline — runs in parallel with App's completion tween
-    const tl = gsap.timeline();
+    tweenTo(buttonRef.current, { scale: 0.96, duration: 0.08, ease: "power2.in" }, 0);
+    tweenTo(buttonRef.current, { scale: 1, duration: 0.2, ease: "back.out(3)" }, 0.08);
 
-    tl.to(buttonRef.current, { scale: 0.96, duration: 0.08, ease: "power2.in" }, 0);
-    tl.to(buttonRef.current, { scale: 1, duration: 0.2, ease: "back.out(3)" }, 0.08);
-
-    tl.to(reticleRef.current, {
+    tweenTo(reticleRef.current, {
       scale: 1.3, opacity: 0.8, duration: 0.15, ease: "power2.out",
     }, 0);
-    tl.to(reticleRef.current, {
+    tweenTo(reticleRef.current, {
       scale: 0.3, opacity: 0, duration: 0.3, ease: "power2.in",
     }, 0.15);
 
-    tl.to(glowRef.current, {
+    tweenTo(glowRef.current, {
       opacity: 1, scale: 1.2, duration: 0.2, ease: "power2.out",
     }, 0);
-    tl.to(glowRef.current, {
+    tweenTo(glowRef.current, {
       opacity: 0, scale: 1.5, duration: 0.5, ease: "power2.in",
     }, 0.2);
 
-    tl.to(titleRef.current, { opacity: 0, y: -15, duration: 0.5, ease: "power2.in" }, 0.2);
-    tl.to(hintRef.current, { opacity: 0, duration: 0.3 }, 0.2);
-    tl.to(topbarRef.current, { opacity: 0, duration: 0.4 }, 0.3);
+    tweenTo(titleRef.current, { opacity: 0, y: -15, duration: 0.5, ease: "power2.in" }, 0.2);
+    tweenTo(hintRef.current, { opacity: 0, duration: 0.3 }, 0.2);
+    tweenTo(topbarRef.current, { opacity: 0, duration: 0.4 }, 0.3);
 
-    // FIX #3: Call onActivate at t=0 — App's timeline takes over video via overwrite
     onActivate();
-  }, [videoTimeline, onActivate, reverseAimLock]);
+  }, [onActivate, reverseAimLock]);
+
+  const headingChars = HEADING.split("");
+  const headingLabel = HEADING;
 
   return (
     <div
@@ -211,7 +233,13 @@ export default function IntroScene({
 
       <div ref={titleRef} className={styles.title}>
         <div className={styles.kicker}>THE COMMANDER IS WAITING</div>
-        <h1>WAR COMMAND</h1>
+        <h1 ref={headingRef} className={styles.splitHeading} aria-label={headingLabel}>
+          {headingChars.map((ch, i) => (
+            <span key={i} className={styles.splitChar} aria-hidden="true">
+              {ch === " " ? "\u00A0" : ch}
+            </span>
+          ))}
+        </h1>
         <p>Interactive cinematic interface</p>
       </div>
 
@@ -225,6 +253,7 @@ export default function IntroScene({
           onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          disabled={armed}
         />
       </div>
 

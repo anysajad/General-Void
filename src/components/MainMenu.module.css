@@ -10,7 +10,13 @@
   inset: 0;
   background:
     radial-gradient(ellipse at 78% 50%, rgba(180, 150, 95, 0.06), transparent 28%),
-    linear-gradient(90deg, rgba(7, 7, 6, 0.98) 0%, rgba(11, 11, 10, 0.92) 40%, rgba(5, 5, 4, 0.5) 60%, transparent 75%);
+    linear-gradient(
+      90deg,
+      rgba(7, 7, 6, 0.98) 0%,
+      rgba(11, 11, 10, 0.92) 40%,
+      rgba(5, 5, 4, 0.5) 60%,
+      transparent 75%
+    );
   pointer-events: none;
 }
 
@@ -44,7 +50,8 @@
 }
 
 .menuContent h2 {
-  font: 600 clamp(48px, 7vw, 110px) / 0.8 "Barlow Condensed", sans-serif;
+  font: 600 clamp(48px, 7vw, 110px) / 0.8 "Barlow Condensed",
+    sans-serif;
   margin: 0 0 36px;
   letter-spacing: 0.03em;
 }
@@ -57,13 +64,14 @@
 .menuItem {
   position: relative;
   border: 0;
-  border-top: 1px solid var(--line, rgba(236, 232, 220, 0.18));
+  border-top: 1px solid
+    var(--line, rgba(236, 232, 220, 0.18));
   background: transparent;
   color: #aaa;
   text-align: left;
   padding: 14px 16px;
-  font: 500 17px "Barlow Condensed", sans-serif;
-  letter-spacing: 0.28em;
+  font: 500 clamp(32px, 5vw, 56px) "Barlow Condensed", sans-serif;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   overflow: hidden;
   cursor: pointer;
@@ -75,7 +83,8 @@
 }
 
 .menuItem:last-child {
-  border-bottom: 1px solid var(--line, rgba(236, 232, 220, 0.18));
+  border-bottom: 1px solid
+    var(--line, rgba(236, 232, 220, 0.18));
 }
 
 .itemLine {
@@ -155,7 +164,8 @@
   }
 
   .menuItem {
-    font-size: 15px;
+    font-size: 28px;
+    padding: 10px 14px;
   }
 
   .menuMark {
@@ -164,7 +174,17 @@
 
   .menuBg {
     background:
-      radial-gradient(ellipse at 78% 50%, rgba(180, 150, 95, 0.06), transparent 28%),
-      linear-gradient(90deg, rgba(7, 7, 6, 0.98) 0%, rgba(11, 11, 10, 0.8) 25%, rgba(5, 5, 4, 0.15) 50%, transparent 65%);
+      radial-gradient(
+        ellipse at 78% 50%,
+        rgba(180, 150, 95, 0.06),
+        transparent 28%
+      ),
+      linear-gradient(
+        90deg,
+        rgba(7, 7, 6, 0.98) 0%,
+        rgba(11, 11, 10, 0.8) 25%,
+        rgba(5, 5, 4, 0.15) 50%,
+        transparent 65%
+      );
   }
 }

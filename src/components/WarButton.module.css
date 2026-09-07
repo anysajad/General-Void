@@ -1,3 +1,7 @@
+.magneticWrap {
+  will-change: transform;
+}
+
 .warButton {
   position: relative;
   display: block;
@@ -21,9 +25,48 @@
   animation: idleBreath 4s ease-in-out infinite;
 }
 
+.warButton.armed {
+  border-color: rgba(165, 26, 26, 0.4);
+  box-shadow:
+    0 0 30px rgba(165, 26, 26, 0.25),
+    0 20px 70px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  animation: armedPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes armedPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(165, 26, 26, 0.25),
+      0 20px 70px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  50% {
+    box-shadow:
+      0 0 50px rgba(165, 26, 26, 0.4),
+      0 20px 70px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+}
+
 @keyframes idleBreath {
-  0%, 100% { box-shadow: 0 20px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
-  50% { box-shadow: 0 20px 70px rgba(0, 0, 0, 0.6), 0 0 20px rgba(165, 26, 26, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.04); }
+  0%,
+  100% {
+    box-shadow:
+      0 20px 70px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  50% {
+    box-shadow:
+      0 20px 70px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(165, 26, 26, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+}
+
+.warButton:disabled {
+  cursor: default;
+  pointer-events: none;
 }
 
 .warButton:focus-visible {
@@ -106,7 +149,7 @@
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.warButton:hover {
+.warButton:hover:not(.armed) {
   border-color: rgba(220, 215, 202, 0.5);
   letter-spacing: 0.5em;
   box-shadow:
@@ -116,58 +159,103 @@
   animation: none;
 }
 
-.warButton:hover .innerBorder {
+.warButton:hover:not(.armed) .innerBorder {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-.warButton:hover .borderGlow {
+.warButton:hover:not(.armed) .borderGlow {
   border-color: rgba(165, 26, 26, 0.3);
 }
 
-.warButton:hover .underline {
+.warButton:hover:not(.armed) .underline {
   width: 100%;
 }
 
-.warButton:hover .energyTop {
+.warButton:hover:not(.armed) .energyTop {
   opacity: 1;
   animation: energyRight 1.2s ease-in-out infinite;
 }
 
-.warButton:hover .energyBottom {
+.warButton:hover:not(.armed) .energyBottom {
   opacity: 1;
   animation: energyLeft 1.2s ease-in-out infinite 0.6s;
 }
 
-.warButton:hover .energyLeft {
+.warButton:hover:not(.armed) .energyLeft {
   opacity: 1;
   animation: energyDown 1.2s ease-in-out infinite 0.3s;
 }
 
-.warButton:hover .energyRight {
+.warButton:hover:not(.armed) .energyRight {
   opacity: 1;
   animation: energyUp 1.2s ease-in-out infinite 0.9s;
 }
 
+.warButton.armed .underline {
+  width: 100%;
+  background: #a51a1a;
+}
+
+.warButton.armed .innerBorder {
+  border-color: rgba(165, 26, 26, 0.2);
+}
+
 @keyframes energyRight {
-  0% { left: 100%; width: 0; }
-  50% { left: 0; width: 100%; }
-  100% { left: 0; width: 0; }
+  0% {
+    left: 100%;
+    width: 0;
+  }
+  50% {
+    left: 0;
+    width: 100%;
+  }
+  100% {
+    left: 0;
+    width: 0;
+  }
 }
 
 @keyframes energyLeft {
-  0% { right: 100%; width: 0; }
-  50% { right: 0; width: 100%; }
-  100% { right: 0; width: 0; }
+  0% {
+    right: 100%;
+    width: 0;
+  }
+  50% {
+    right: 0;
+    width: 100%;
+  }
+  100% {
+    right: 0;
+    width: 0;
+  }
 }
 
 @keyframes energyDown {
-  0% { bottom: 100%; height: 0; }
-  50% { bottom: 0; height: 100%; }
-  100% { bottom: 0; height: 0; }
+  0% {
+    bottom: 100%;
+    height: 0;
+  }
+  50% {
+    bottom: 0;
+    height: 100%;
+  }
+  100% {
+    bottom: 0;
+    height: 0;
+  }
 }
 
 @keyframes energyUp {
-  0% { top: 100%; height: 0; }
-  50% { top: 0; height: 100%; }
-  100% { top: 0; height: 0; }
+  0% {
+    top: 100%;
+    height: 0;
+  }
+  50% {
+    top: 0;
+    height: 100%;
+  }
+  100% {
+    top: 0;
+    height: 0;
+  }
 }

@@ -23,6 +23,7 @@
 }
 
 .videoIdleWrap {
+  position: relative;
   width: 100%;
   height: 100%;
   animation: characterIdle 7s ease-in-out infinite alternate;
@@ -64,25 +65,38 @@
   pointer-events: none;
   transform: scale(1.06) translate(1%, -1%);
   mask-image: linear-gradient(
-    to top,
-    black 0%,
-    black 88%,
-    transparent 100%
-  ),
-  linear-gradient(
-    to left,
-    black 0%,
-    black 90%,
-    transparent 100%
-  ),
-  linear-gradient(
-    315deg,
-    black 0%,
-    black 88%,
-    transparent 92%
-  );
+      to top,
+      black 0%,
+      black 88%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to left,
+      black 0%,
+      black 90%,
+      transparent 100%
+    ),
+    linear-gradient(
+      315deg,
+      black 0%,
+      black 88%,
+      transparent 92%
+    );
   mask-composite: intersect;
   -webkit-mask-composite: source-in;
+  transition: opacity 0.08s;
+}
+
+.videoOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.videoOverlay .video {
+  width: 100%;
+  height: 100%;
 }
 
 .atmosphericLight {
@@ -96,19 +110,61 @@
   z-index: 1;
 }
 
+.lightSweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 45%,
+    rgba(255, 255, 255, 0.04) 50%,
+    transparent 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: lightSweep 8s ease-in-out infinite;
+}
+
+@keyframes lightSweep {
+  0%, 100% {
+    opacity: 0;
+    transform: translateX(-40%);
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(40%);
+  }
+  85% {
+    opacity: 1;
+  }
+}
+
 .menuGlow {
   position: absolute;
   inset: -20%;
-  background: radial-gradient(ellipse at 65% 55%, rgba(160, 20, 20, 0.08), transparent 50%);
+  background: radial-gradient(
+    ellipse at 65% 55%,
+    rgba(160, 20, 20, 0.08),
+    transparent 50%
+  );
   pointer-events: none;
   z-index: 2;
   animation: glowPulse 8s ease-in-out infinite alternate;
 }
 
 @keyframes glowPulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.7; }
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
 }
 
 .introLayer {
@@ -146,7 +202,11 @@
   position: fixed;
   inset: 0;
   z-index: 39;
-  background: radial-gradient(circle at 50% 50%, rgba(160, 20, 20, 0.5), transparent 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(160, 20, 20, 0.5),
+    transparent 70%
+  );
   opacity: 0;
   pointer-events: none;
 }
@@ -158,6 +218,38 @@
   opacity: 0;
   pointer-events: none;
   will-change: transform;
+}
+
+.loading {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg, #050505);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.loadingLabel {
+  font: 500 12px "Barlow Condensed", sans-serif;
+  letter-spacing: 0.48em;
+  color: var(--muted, #8f8b83);
+  text-transform: uppercase;
+}
+
+.loadingBar {
+  width: min(260px, 60vw);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.loadingFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold, #b69a63), var(--accent, #a21818));
+  transition: width 0.3s ease-out;
 }
 
 @media (max-width: 800px) {
@@ -177,31 +269,31 @@
   .videoMenu .video {
     transform: scale(1.06) translate(1%, -1%);
     mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      transparent 20%,
-      black 50%,
-      black 100%
-    ),
-    linear-gradient(
-      315deg,
-      black 0%,
-      black 88%,
-      transparent 92%
-    );
+        to right,
+        transparent 0%,
+        transparent 20%,
+        black 50%,
+        black 100%
+      ),
+      linear-gradient(
+        315deg,
+        black 0%,
+        black 88%,
+        transparent 92%
+      );
     -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0%,
-      transparent 20%,
-      black 50%,
-      black 100%
-    ),
-    linear-gradient(
-      315deg,
-      black 0%,
-      black 88%,
-      transparent 92%
-    );
+        to right,
+        transparent 0%,
+        transparent 20%,
+        black 50%,
+        black 100%
+      ),
+      linear-gradient(
+        315deg,
+        black 0%,
+        black 88%,
+        transparent 92%
+      );
     mask-composite: intersect;
     -webkit-mask-composite: source-in;
   }

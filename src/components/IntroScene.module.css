@@ -59,11 +59,16 @@
   margin-bottom: 14px;
 }
 
-.title h1 {
+.splitHeading {
   margin: 0;
   font: 600 clamp(54px, 9vw, 150px) / 0.82 "Barlow Condensed", sans-serif;
   letter-spacing: 0.03em;
   text-shadow: 0 8px 40px #000;
+}
+
+.splitChar {
+  display: inline-block;
+  will-change: transform, opacity, filter;
 }
 
 .title p {
@@ -90,7 +95,11 @@
   transform: translate(-50%, 0) scale(0.8);
   width: 500px;
   height: 200px;
-  background: radial-gradient(ellipse at 50% 60%, rgba(160, 20, 20, 0.25), transparent 70%);
+  background: radial-gradient(
+    ellipse at 50% 60%,
+    rgba(160, 20, 20, 0.25),
+    transparent 70%
+  );
   opacity: 0;
   pointer-events: none;
   filter: blur(30px);
@@ -118,7 +127,7 @@
     top: 14vh;
   }
 
-  .title h1 {
+  .splitHeading {
     font-size: 64px;
   }
 
