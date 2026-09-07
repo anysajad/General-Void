@@ -1,133 +1,14 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WAR COMMAND — Cinematic Interface</title>
-<meta name="description" content="A cinematic interactive military game menu showcase.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#050505;--panel:#0a0a09;--ink:#eeeae1;--muted:#8f8b83;--line:rgba(236,232,220,.18);--accent:#a21818;--gold:#b69a63}
-*{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}
-body{cursor:none}.noise,.vignette,.scan{position:fixed;inset:0;pointer-events:none;z-index:20}
-.noise{opacity:.055;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
-.vignette{background:radial-gradient(circle at 50% 45%,transparent 34%,rgba(0,0,0,.5) 72%,#000 100%)} .scan{opacity:.05;background:repeating-linear-gradient(to bottom,transparent 0 3px,#fff 4px,transparent 5px)}
-#cursor{position:fixed;z-index:50;width:18px;height:18px;border:1px solid rgba(255,255,255,.8);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;transition:width .25s,height .25s,border-color .25s,background .25s;mix-blend-mode:difference}
-#cursor:after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;background:#fff;border-radius:50%;transform:translate(-50%,-50%)}
-#cursor.hot{width:42px;height:42px;border-color:#d22;background:rgba(150,0,0,.12)}
-.scene{position:absolute;inset:0;transition:transform 1.3s cubic-bezier(.77,0,.18,1),filter .8s}
-.intro{z-index:5;background:#030303}
-.character-stage{position:absolute;inset:0;display:grid;place-items:center;overflow:hidden}
-.character-stage:before{content:"";position:absolute;inset:-15%;background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.09),transparent 34%),radial-gradient(ellipse at 50% 80%,rgba(132,8,8,.12),transparent 32%);filter:blur(35px)}
-.character{position:absolute;height:115vh;max-width:none;width:auto;left:50%;bottom:-5vh;transform:translateX(-50%) scale(1.01);filter:contrast(1.08) brightness(.83);object-fit:contain;object-position:center bottom}
-.topbar{position:absolute;z-index:8;left:5vw;right:5vw;top:4vh;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:.24em;font-size:10px;color:var(--muted)}
-.brand{color:var(--ink);font-family:"Barlow Condensed";font-size:18px;letter-spacing:.32em}.status{display:flex;gap:14px;align-items:center}.dot{width:5px;height:5px;background:#9d1616;border-radius:50%;box-shadow:0 0 14px #9d1616}
-.title{position:absolute;z-index:7;left:50%;top:13vh;transform:translateX(-50%);text-align:center;white-space:nowrap}
-.kicker{font-size:10px;letter-spacing:.55em;color:var(--gold);margin-bottom:14px}.title h1{margin:0;font:600 clamp(54px,9vw,150px)/.82 "Barlow Condensed";letter-spacing:.03em;text-shadow:0 8px 40px #000}.title p{margin:18px 0 0;font-size:9px;letter-spacing:.5em;color:#777;text-transform:uppercase}
-.war-button{position:absolute;z-index:10;left:50%;bottom:8vh;transform:translateX(-50%);width:min(390px,78vw);padding:19px 26px;background:rgba(7,7,7,.72);border:1px solid rgba(220,215,202,.38);color:#eee;text-transform:uppercase;letter-spacing:.42em;font:600 12px "Barlow Condensed";backdrop-filter:blur(12px);transition:all .35s;box-shadow:0 20px 70px rgba(0,0,0,.6)}
-.war-button:before{content:"";position:absolute;inset:4px;border:1px solid rgba(255,255,255,.05)}.war-button:after{content:"";position:absolute;left:0;bottom:-1px;width:0;height:2px;background:#a51a1a;box-shadow:0 0 22px #a51a1a;transition:width .5s}.war-button:hover{transform:translateX(-50%) translateY(-4px);border-color:#aaa;letter-spacing:.5em}.war-button:hover:after{width:100%}
-.reticle{position:absolute;z-index:9;width:86px;height:86px;border:1px solid rgba(190,20,20,.7);border-radius:50%;opacity:0;transform:translate(-50%,-50%) scale(.5);pointer-events:none}.reticle:before,.reticle:after{content:"";position:absolute;left:50%;top:50%;background:#b21b1b;transform:translate(-50%,-50%)}.reticle:before{width:1px;height:110%}.reticle:after{width:110%;height:1px}.reticle span{position:absolute;inset:15px;border:1px solid rgba(190,20,20,.3);border-radius:50%}
-.hint{position:absolute;z-index:8;left:5vw;bottom:7vh;color:#666;font-size:8px;letter-spacing:.32em;text-transform:uppercase}.hint b{color:#aaa;font-weight:500}
-.menu{z-index:2;background:linear-gradient(105deg,#070706 0%,#0b0b0a 45%,#020202 100%);transform:translateX(100%);display:block}
-.menu-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 78% 50%,rgba(180,150,95,.10),transparent 28%),linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.25) 50%,rgba(0,0,0,.7) 100%)} 
-.menu-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:70px 70px;mask-image:linear-gradient(90deg,#000,transparent 90%);opacity:.35}
-.menu-content{position:absolute;left:9vw;top:50%;transform:translateY(-50%);width:min(470px,52vw);z-index:5}.eyebrow{font-size:9px;letter-spacing:.48em;color:var(--gold);margin-bottom:10px}.menu-content h2{font:600 clamp(60px,8vw,120px)/.8 "Barlow Condensed";margin:0 0 36px;letter-spacing:.03em}.menu-items{display:grid;gap:5px}.menu-item{position:relative;border:0;border-top:1px solid var(--line);background:transparent;color:#aaa;text-align:left;padding:15px 18px;font:500 18px "Barlow Condensed";letter-spacing:.28em;text-transform:uppercase;transition:.35s;overflow:hidden}.menu-item:last-child{border-bottom:1px solid var(--line)}.menu-item:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(145,16,16,.22),transparent 70%);transform:translateX(-100%);transition:.45s}.menu-item:hover{color:#fff;padding-left:30px}.menu-item:hover:before{transform:none}.menu-item i{position:relative;z-index:1;font-style:normal}.menu-item small{position:absolute;right:18px;color:#555;font:10px Inter;letter-spacing:.18em}
-.menu-character{position:absolute;z-index:4;height:112vh;width:auto;right:1vw;bottom:-8vh;filter:brightness(.82) contrast(1.08);object-fit:contain;object-position:center bottom;opacity:0;transform:translateX(80px)}
-.menu-mark{position:absolute;right:5vw;top:6vh;text-align:right;color:#555;font-size:8px;letter-spacing:.35em;text-transform:uppercase;line-height:2}.menu-mark strong{display:block;color:#aaa;font:500 22px "Barlow Condensed";letter-spacing:.2em}
-.curtain{position:absolute;z-index:30;inset:0;background:#020202;transform:translateX(100%);opacity:0;pointer-events:none}.curtain:after{content:"";position:absolute;right:0;top:0;width:10%;height:100%;background:linear-gradient(90deg,transparent,#000 60%);opacity:.7}
-.flash{position:fixed;inset:0;z-index:40;background:#fff;opacity:0;pointer-events:none}
-@media(max-width:800px){body{cursor:auto}#cursor{display:none}.character{height:90vh;bottom:0}.title{top:14vh}.title h1{font-size:64px}.war-button{bottom:10vh}.hint{display:none}.menu-content{left:8vw;width:78vw}.menu-character{height:74vh;right:-18vw;opacity:.55!important}.menu-content h2{font-size:70px}.menu-item{font-size:16px}}
-</style>
-</head>
-<body>
-<div id="cursor"></div><div class="noise"></div><div class="scan"></div><div class="vignette"></div>
-<main id="app">
-<section class="scene intro" id="intro">
-  <div class="topbar"><div class="brand">WAR COMMAND</div><div class="status"><span class="dot"></span> CLASSIFIED // 001</div></div>
-  <div class="character-stage">
-    <video id="general" class="character" src="assets/general.mp4" poster="assets/general-poster.jpg" muted playsinline preload="auto"></video>
-  </div>
-  <div class="title"><div class="kicker">THE COMMANDER IS WAITING</div><h1>WAR COMMAND</h1><p>Interactive cinematic interface</p></div>
-  <div class="reticle" id="reticle"><span></span></div>
-  <button class="war-button" id="warButton">Start The War</button>
-  <div class="hint">Move toward the button &nbsp;·&nbsp; <b>He will notice</b></div>
-</section>
-<section class="scene menu" id="menu">
-  <div class="menu-bg"></div><div class="menu-grid"></div>
-  <video id="menuCharacter" class="menu-character" src="assets/general.mp4" muted playsinline preload="auto"></video>
-  <div class="menu-mark">COMMAND INTERFACE<strong>WAR-01</strong>NO HEAD. NO MERCY.</div>
-  <div class="menu-content">
-    <div class="eyebrow">COMMAND // ONLINE</div><h2>MAIN MENU</h2>
-    <nav class="menu-items">
-      <button class="menu-item"><i>Play</i><small>01</small></button>
-      <button class="menu-item"><i>Multiplayer</i><small>02</small></button>
-      <button class="menu-item"><i>Campaign</i><small>03</small></button>
-      <button class="menu-item"><i>Settings</i><small>04</small></button>
-      <button class="menu-item"><i>Exit</i><small>05</small></button>
-    </nav>
-  </div>
-</section>
-<div class="curtain" id="curtain"></div><div class="flash" id="flash"></div>
-</main>
-<script>
-const intro=document.querySelector('#intro'), menu=document.querySelector('#menu');
-const video=document.querySelector('#general'), menuVideo=document.querySelector('#menuCharacter');
-const button=document.querySelector('#warButton'), curtain=document.querySelector('#curtain'), flash=document.querySelector('#flash'), reticle=document.querySelector('#reticle'), cursor=document.querySelector('#cursor');
-let active=false, hover=false, ticking=false;
-
-video.pause(); video.currentTime=0;
-
-function scrubTo(t,duration=850){
-  const start=video.currentTime, delta=t-start, begin=performance.now();
-  function step(now){
-    const p=Math.min(1,(now-begin)/duration), e=1-Math.pow(1-p,3);
-    video.currentTime=Math.max(0,Math.min(video.duration||4,start+delta*e));
-    if(p<1) requestAnimationFrame(step); else ticking=false;
-  }
-  if(!ticking){ticking=true;requestAnimationFrame(step)}
-}
-function pointer(x,y){
-  cursor.style.left=x+'px';cursor.style.top=y+'px';
-  if(hover){reticle.style.left=x+'px';reticle.style.top=y+'px'}
-}
-window.addEventListener('pointermove',e=>pointer(e.clientX,e.clientY));
-button.addEventListener('mouseenter',()=>{
-  if(active)return; hover=true; cursor.classList.add('hot');
-  reticle.style.opacity='1';reticle.style.transform='translate(-50%,-50%) scale(1)';
-  scrubTo(3.95,950);
-});
-button.addEventListener('mouseleave',()=>{
-  if(active)return; hover=false;cursor.classList.remove('hot');
-  reticle.style.opacity='0';reticle.style.transform='translate(-50%,-50%) scale(.5)';
-  scrubTo(0,1100);
-});
-button.addEventListener('click',async()=>{
-  if(active)return; active=true; button.disabled=true; cursor.classList.remove('hot');
-  flash.animate([{opacity:0},{opacity:.22},{opacity:0}],{duration:650,easing:'ease-out'});
-  document.body.animate([{transform:'scale(1)'},{transform:'scale(1.008)'},{transform:'scale(1)'}],{duration:500});
-  await new Promise(r=>setTimeout(r,260));
-  video.currentTime=Math.max(video.currentTime,3.0);
-  video.play();
-  await new Promise(r=>setTimeout(r,850));
-  curtain.style.transition='transform 1.45s cubic-bezier(.76,0,.18,1), opacity .05s linear';
-  curtain.style.opacity='1';
-  curtain.style.transform='translateX(-100%)';
-  menu.style.transition='transform 1.45s cubic-bezier(.76,0,.18,1)';
-  menu.style.transform='translateX(0)';
-  intro.style.transform='translateX(-10%)';
-  setTimeout(()=>{
-    menuVideo.currentTime=Math.min(menuVideo.duration||4,3.9);
-    menuVideo.playbackRate=.25; menuVideo.play();
-    menuVideo.style.opacity='1';
-    menuVideo.animate([{transform:'translateX(80px) scale(1.01)'},{transform:'translateX(0) scale(1)'}],{duration:900,easing:'cubic-bezier(.2,.8,.2,1)',fill:'forwards'});
-  },900);
-});
-
-document.querySelectorAll('.menu-item').forEach((el,i)=>{
-  el.addEventListener('mouseenter',()=>{menuVideo.style.filter=`brightness(${i===0?.9:.82}) contrast(1.08)`});
-});
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WAR COMMAND — Cinematic Interface</title>
+    <meta name="description" content="A cinematic interactive military game menu showcase." />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔</text></svg>" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -1,0 +1,128 @@
+.intro {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.topbar {
+  position: absolute;
+  z-index: 8;
+  left: 5vw;
+  right: 5vw;
+  top: 4vh;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 10px;
+  color: var(--muted, #8f8b83);
+  opacity: 0;
+}
+
+.brand {
+  color: var(--ink, #eeeae1);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.32em;
+}
+
+.status {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  background: #9d1616;
+  border-radius: 50%;
+  box-shadow: 0 0 14px #9d1616;
+}
+
+.title {
+  position: absolute;
+  z-index: 7;
+  left: 50%;
+  top: 13vh;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.kicker {
+  font-size: 10px;
+  letter-spacing: 0.55em;
+  color: var(--gold, #b69a63);
+  margin-bottom: 14px;
+}
+
+.title h1 {
+  margin: 0;
+  font: 600 clamp(54px, 9vw, 150px) / 0.82 "Barlow Condensed", sans-serif;
+  letter-spacing: 0.03em;
+  text-shadow: 0 8px 40px #000;
+}
+
+.title p {
+  margin: 18px 0 0;
+  font-size: 9px;
+  letter-spacing: 0.5em;
+  color: #777;
+  text-transform: uppercase;
+}
+
+.buttonWrap {
+  position: absolute;
+  z-index: 10;
+  left: 50%;
+  bottom: 8vh;
+  transform: translateX(-50%);
+}
+
+.buttonGlow {
+  position: absolute;
+  z-index: 9;
+  left: 50%;
+  bottom: 6vh;
+  transform: translate(-50%, 0) scale(0.8);
+  width: 500px;
+  height: 200px;
+  background: radial-gradient(ellipse at 50% 60%, rgba(160, 20, 20, 0.25), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(30px);
+}
+
+.hint {
+  position: absolute;
+  z-index: 8;
+  left: 5vw;
+  bottom: 7vh;
+  color: #666;
+  font-size: 8px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+
+.hint b {
+  color: #aaa;
+  font-weight: 500;
+}
+
+@media (max-width: 800px) {
+  .title {
+    top: 14vh;
+  }
+
+  .title h1 {
+    font-size: 64px;
+  }
+
+  .hint {
+    display: none;
+  }
+}

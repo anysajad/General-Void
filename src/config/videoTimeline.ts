@@ -1,0 +1,9 @@
+export const VIDEO_TIMELINE = {
+  SEATED_T: 0,
+  MOVE_START_T: 1.25,
+  STANDING_T: 2.25,
+  AIM_START_T: 2.75,
+  AIM_LOCK_T: 3.25,
+  LAST_USEFUL_T: 3.8,
+  DURATION: 4.042,
+} as const;

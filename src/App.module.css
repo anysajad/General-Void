@@ -1,0 +1,188 @@
+.root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg, #050505);
+}
+
+.main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.videoWrap {
+  position: absolute;
+  left: 50%;
+  bottom: -5vh;
+  transform: translateX(-50%) scale(1.01);
+  height: 115vh;
+  z-index: 3;
+  will-change: transform;
+}
+
+.videoMenu {
+  left: auto;
+  right: 0;
+  bottom: -4vh;
+  height: clamp(500px, 90vh, 900px);
+  transform: scale(1);
+  animation: characterIdle 7s ease-in-out infinite alternate;
+}
+
+@keyframes characterIdle {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  33% {
+    transform: scale(1.012) translate(2px, -1px);
+  }
+  66% {
+    transform: scale(1.006) translate(-1px, 2px);
+  }
+  100% {
+    transform: scale(1.01) translate(-2px, -2px);
+  }
+}
+
+.video {
+  width: auto;
+  height: 100%;
+  max-width: none;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: contrast(1.08) brightness(0.83);
+  pointer-events: none;
+  mask-image: linear-gradient(
+    to top,
+    black 0%,
+    black 85%,
+    transparent 100%
+  ),
+  linear-gradient(
+    to left,
+    black 0%,
+    black 88%,
+    transparent 100%
+  );
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+.videoMenu .video {
+  mask-image: radial-gradient(
+    ellipse at 50% 50%,
+    black 55%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse at 50% 50%,
+    black 55%,
+    transparent 100%
+  );
+  mask-composite: unset;
+  -webkit-mask-composite: source-over;
+}
+
+.atmosphericLight {
+  position: absolute;
+  inset: -15%;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.09), transparent 34%),
+    radial-gradient(ellipse at 50% 80%, rgba(132, 8, 8, 0.12), transparent 32%);
+  filter: blur(35px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.menuGlow {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(ellipse at 65% 55%, rgba(160, 20, 20, 0.08), transparent 50%);
+  pointer-events: none;
+  z-index: 2;
+  animation: glowPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.introLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.introLayer > * {
+  pointer-events: auto;
+}
+
+.menuLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.menuLayer > * {
+  pointer-events: auto;
+}
+
+.flash {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.crimsonPulse {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  background: radial-gradient(circle at 50% 50%, rgba(160, 20, 20, 0.5), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 800px) {
+  .videoWrap {
+    height: 90vh;
+    bottom: 0;
+  }
+
+  .videoMenu {
+    height: 85vh;
+    right: 0;
+    bottom: 0;
+    opacity: 0.5;
+    animation: none;
+    z-index: 2;
+  }
+
+  .videoMenu .video {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      transparent 20%,
+      black 50%,
+      black 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      transparent 20%,
+      black 50%,
+      black 100%
+    );
+  }
+
+  .menuLayer {
+    z-index: 5;
+  }
+}

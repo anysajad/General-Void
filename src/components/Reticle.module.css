@@ -1,0 +1,42 @@
+.reticle {
+  position: absolute;
+  z-index: 9;
+  width: 86px;
+  height: 86px;
+  border: 1px solid rgba(190, 20, 20, 0.7);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.5);
+  pointer-events: none;
+  transition:
+    opacity 0.4s,
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reticle::before,
+.reticle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #b21b1b;
+  transform: translate(-50%, -50%);
+}
+
+.reticle::before {
+  width: 1px;
+  height: 110%;
+}
+
+.reticle::after {
+  width: 110%;
+  height: 1px;
+}
+
+.innerRing {
+  position: absolute;
+  inset: 15px;
+  border: 1px solid rgba(190, 20, 20, 0.3);
+  border-radius: 50%;
+  display: block;
+}
